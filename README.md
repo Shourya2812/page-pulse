@@ -27,5 +27,5 @@ A full-stack web tool that audits any URL and returns core metrics, including HT
 **Request Body:**
 ```json
 {
-  "url": "[https://github.com](https://github.com)"
+  "url": "https://github.com"
 }
