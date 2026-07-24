@@ -5,38 +5,42 @@ function App() {
   const [url, setUrl] = useState('')
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false) 
 
   const handleAudit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-    setResult(null)
+    e.preventDefault();
+    setError('');
+    setResult(null);
+    setIsLoading(true);
 
     try {
-      // Points to your local FastAPI server
       const response = await fetch('https://page-pulse-a01i.onrender.com/api/audit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ url }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
-      // Handle 400, 408, 422 errors thrown by FastAPI gracefully
       if (!response.ok) {
-        throw new Error(data.detail || 'Failed to audit the URL.')
+        if (data.detail && Array.isArray(data.detail)) {
+          throw new Error(`Invalid URL: ${data.detail[0].msg}`);
+        } else if (data.detail) {
+          throw new Error(data.detail);
+        } else {
+          throw new Error('Failed to audit page');
+        }
       }
 
-      setResult(data)
+      setResult(data); 
     } catch (err) {
-      setError(err.message)
+      setError(err.message);
     } finally {
-      setLoading(false)
+      setIsLoading(false); 
     }
-  }
+  }; 
 
   return (
     <div className="container">
@@ -52,23 +56,29 @@ function App() {
             placeholder="https://example.com" 
             required 
           />
-          <button type="submit" disabled={loading}>
-            {loading ? 'Auditing...' : 'Audit Page'}
+          <button type="submit" disabled={isLoading}> 
+            {isLoading ? 'Auditing...' : 'Audit Page'}
           </button>
         </form>
 
-        {/* Renders Sensible Errors (Rubric Requirement) */}
         {error && <div className="error-box">⚠️ {error}</div>}
 
-        {/* Renders Report Cleanly (Rubric Requirement) */}
         {result && (
           <div className="result-box">
             <h2>Audit Results</h2>
             <ul>
-              <li><strong>HTTP Status:</strong> {result.http_status}</li>
+              <li>
+                <strong>HTTP Status:</strong>{' '}
+                <span style={{ 
+                  color: result.http_status >= 200 && result.http_status < 300 ? '#10b981' : '#ef4444', 
+                  fontWeight: 'bold' 
+                }}>
+                  {result.http_status}
+                </span>
+              </li>
               <li><strong>Response Time:</strong> {result.response_time_ms} ms</li>
-              <li><strong>Title:</strong> {result.title || 'Missing'}</li>
-              <li><strong>Meta Description:</strong> {result.meta_description || 'Missing'}</li>
+              <li><strong>Title:</strong> {result.title || 'Not available'}</li>
+              <li><strong>Meta Description:</strong> {result.meta_description || 'Not available'}</li>
               <li><strong>H1 Count:</strong> {result.h1_count}</li>
               <li><strong>Images Missing Alt Text:</strong> {result.images_missing_alt_text}</li>
               <li><strong>Approximate Word Count:</strong> {result.approximate_word_count}</li>
@@ -77,7 +87,6 @@ function App() {
         )}
       </main>
 
-      {/* CRITICAL: MANDATORY LIVE BUILD FOOTER */}
       <footer>
         Built for Digital Heroes Training Task <a href="https://digitalheroesco.com" target="_blank" rel="noopener noreferrer">digitalheroesco.com</a>
       </footer>
