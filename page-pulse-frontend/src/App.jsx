@@ -15,7 +15,7 @@ function App() {
 
     try {
       // Points to your local FastAPI server
-      const response = await fetch('http://127.0.0.1:8000/api/audit', {
+      const response = await fetch('https://page-pulse-a01i.onrender.com/api/audit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
